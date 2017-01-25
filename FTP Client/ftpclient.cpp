@@ -18,6 +18,9 @@ iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 */
 #include <iostream>    //cout
 #include <string>
+#include <vector>
+#include <sstream>
+#include <iterator>
 #include <stdio.h> //printf
 #include <stdlib.h>
 #include <string.h>    //strlen
@@ -30,7 +33,9 @@ iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
 
 #define BUFFER_LENGTH 2048
 
-int createConnection(std::string host, int port)
+using namespace std;
+
+int createConnection(string host, int port)
 {
     int s;
     struct sockaddr_in sockaddr;
@@ -43,11 +48,11 @@ int createConnection(std::string host, int port)
     int a1,a2,a3,a4;
     if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)
     {
-        std::cout << "by ip";
+        cout << "by ip";
         sockaddr.sin_addr.s_addr =  inet_addr(host.c_str());
     }
     else {
-        std::cout << "by name";
+        cout << "by name";
         hostent *record = gethostbyname(host.c_str());
         in_addr *addressptr = (in_addr *)record->h_addr;
         sockaddr.sin_addr = *addressptr;
@@ -61,18 +66,18 @@ int createConnection(std::string host, int port)
     return s;
 }
 
-int request(int sock, std::string message)
+int request(int sock, string message)
 {
     return send(sock, message.c_str(), message.size(), 0);
 }
 
-std::string reply(int s)
+string reply(int s)
 {
-    std::string strReply;
+    string strReply;
     int count;
     char buffer[BUFFER_LENGTH+1];
     
-    usleep(1000);
+    usleep(100000); // Change based on connection strength
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
         buffer[count] = '\0';
@@ -81,7 +86,7 @@ std::string reply(int s)
     return strReply;
 }
 
-std::string requestReply(int s, std::string message)
+string requestReply(int s, string message)
 {
 	if (request(s, message) > 0)
     {
@@ -90,11 +95,56 @@ std::string requestReply(int s, std::string message)
 	return "";
 }
 
+bool checkStatus(string desiredStatus, string stringReply) {
+    size_t status = stringReply.find(desiredStatus);
+    if (status == string::npos) {
+        cout << "Error! (" << stringReply << ")" << endl;
+        return false;
+    }
+    return true;
+}
+
+int createDTPConnection(string strReply) {
+    // Parse IP and port
+    string ip_port_info = strReply.substr(strReply.find("(")+1, 23);
+    for (int i = 0; i < ip_port_info.length(); i++) {
+        if (ip_port_info[i] == ',' || ip_port_info[i] == ')' || ip_port_info[i] == '.')
+            ip_port_info[i] = ' ';
+    }
+    
+    stringstream ss(ip_port_info);
+    string ip_address, temp;
+    int counter = 0, port1, port2;
+    while (ss >> temp) {
+        if(counter < 3) {
+            ip_address = ip_address + temp + ".";
+        } else if(counter == 3) {
+            ip_address += temp;
+        } else if(counter == 4) {
+            istringstream iss(temp);
+            iss >> port1;
+        } else {
+            istringstream iss(temp);
+            iss >> port2;
+        }
+        counter++;
+    }
+    
+    port1 = port1 << 8;
+    ostringstream oss;
+    oss << port1 << port2;
+    istringstream iss(oss.str());
+    int port;
+    iss >> port;
+    
+    cout << ip_address << ":" << port << endl;
+    return createConnection(ip_address, port);
+}
 
 int main(int argc , char *argv[])
 {
     int sockpi;
-    std::string strReply;
+    string strReply;
     
     //TODO  arg[1] can be a dns or an IP address.
     if (argc > 2)
@@ -103,20 +153,27 @@ int main(int argc , char *argv[])
         sockpi = createConnection(argv[1], 21);
     else
         sockpi = createConnection("130.179.16.134", 21);
-    strReply = reply(sockpi);
-    std::cout << strReply  << std::endl;
     
+    strReply = reply(sockpi);
+    if(!checkStatus("220", strReply)) return 0;
+    cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "USER anonymous\r\n");
-    //TODO parse srtReply to obtain the status. 
-	// Let the system act according to the status and display
-    // friendly message to the user 
-	// You can see the ouput using std::cout << strReply  << std::endl;
-    
+    if(!checkStatus("331", strReply)) return 0;
+    cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "PASS asa@asas.com\r\n");
-        
-    //TODO implement PASV, LIST, RETR. 
+    if(!checkStatus("230", strReply)) return 0;
+    cout << strReply  << endl;
+    
+    // PASV
+    strReply = requestReply(sockpi, "PASV\r\n");
+    if(!checkStatus("227", strReply)) return 0;
+    cout << strReply  << endl;
+    
+    int hello = createDTPConnection(strReply);
+    
+    //TODO implement PASV, LIST, RETR.
     // Hint: implement a function that set the SP in passive mode and accept commands.
     return 0;
 }
