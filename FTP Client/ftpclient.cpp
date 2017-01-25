@@ -105,13 +105,17 @@ bool checkStatus(string desiredStatus, string stringReply) {
 }
 
 int createDTPConnection(string strReply) {
-    // Parse IP and port
+    // Obtain substring of IP and port information from reply message
     string ip_port_info = strReply.substr(strReply.find("(")+1, 23);
+    
+    // Substring is formatted as follows: (xxx,xxx,xx,xx,xxx,xxx)
+    // Replace every non-numeric character with a space
     for (int i = 0; i < ip_port_info.length(); i++) {
         if (ip_port_info[i] == ',' || ip_port_info[i] == ')' || ip_port_info[i] == '.')
             ip_port_info[i] = ' ';
     }
     
+    // Parse substring to construct IP address as a string and the port information
     stringstream ss(ip_port_info);
     string ip_address, temp;
     int counter = 0, port1, port2;
@@ -121,15 +125,18 @@ int createDTPConnection(string strReply) {
         } else if(counter == 3) {
             ip_address += temp;
         } else if(counter == 4) {
+            // Convert the string to an int
             istringstream iss(temp);
             iss >> port1;
         } else {
+            // Convert the string to an int
             istringstream iss(temp);
             iss >> port2;
         }
         counter++;
     }
     
+    // Perform a << 8 | b
     port1 = port1 << 8;
     ostringstream oss;
     oss << port1 << port2;
@@ -137,7 +144,7 @@ int createDTPConnection(string strReply) {
     int port;
     iss >> port;
     
-    cout << ip_address << ":" << port << endl;
+    //cout << ip_address << ":" << port << endl;
     return createConnection(ip_address, port);
 }
 
