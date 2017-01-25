@@ -1,2 +1,5 @@
-# CECS-327
-Introduction to Networks and Distributed Computing
+# CECS 327
+Course Title: Introduction to Networks and Distributed Computing
+
+# Assignment - FTP Client
+
