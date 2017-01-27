@@ -1,31 +1,16 @@
 /**
     C++ client example using sockets.
-    This programs can be compiled in linux and with minor modification in 
-	   mac (mainly on the name of the headers)
-    Windows requires extra lines of code and different headers
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
-#pragma comment(lib, "Ws2_32.lib")
-...
-WSADATA wsaData;
-iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-...
 */
-#include <iostream>    //cout
+#include <iostream>
 #include <string>
 #include <vector>
 #include <sstream>
 #include <iterator>
-#include <stdio.h> //printf
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>    //strlen
-#include <sys/socket.h>    //socket
-#include <arpa/inet.h> //inet_addr
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -77,7 +62,7 @@ string reply(int s)
     int count;
     char buffer[BUFFER_LENGTH+1];
     
-    usleep(100000); // Change based on connection strength
+    usleep(500000); // Change based on connection strength
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
         buffer[count] = '\0';
@@ -98,54 +83,60 @@ string requestReply(int s, string message)
 bool checkStatus(string desiredStatus, string stringReply) {
     size_t status = stringReply.find(desiredStatus);
     if (status == string::npos) {
-        cout << "Error! (" << stringReply << ")" << endl;
         return false;
     }
     return true;
 }
 
-int createDTPConnection(string strReply) {
+int pasvConnection(int socket) {
+    string reply = requestReply(socket, "PASV\r\n");
+    
     // Obtain substring of IP and port information from reply message
-    string ip_port_info = strReply.substr(strReply.find("(")+1, 23);
+    string ip_port = reply.substr(reply.find("(") + 1,
+                                  reply.find(")") - reply.find("(") - 1);
     
-    // Substring is formatted as follows: (xxx,xxx,xx,xx,xxx,xxx)
-    // Replace every non-numeric character with a space
-    for (int i = 0; i < ip_port_info.length(); i++) {
-        if (ip_port_info[i] == ',' || ip_port_info[i] == ')' || ip_port_info[i] == '.')
-            ip_port_info[i] = ' ';
-    }
+    string ip_address = "", a = "", b = "";
+    int i = 0, part = 0;
     
-    // Parse substring to construct IP address as a string and the port information
-    stringstream ss(ip_port_info);
-    string ip_address, temp;
-    int counter = 0, port1, port2;
-    while (ss >> temp) {
-        if(counter < 3) {
-            ip_address = ip_address + temp + ".";
-        } else if(counter == 3) {
-            ip_address += temp;
-        } else if(counter == 4) {
-            // Convert the string to an int
-            istringstream iss(temp);
-            iss >> port1;
+    for(; part < 4; i++) {
+        if(ip_port[i] == ',') {
+            part++;
+            if(part != 4) ip_address += ".";
         } else {
-            // Convert the string to an int
-            istringstream iss(temp);
-            iss >> port2;
+            ip_address += ip_port[i];
         }
-        counter++;
     }
     
-    // Perform a << 8 | b
-    port1 = port1 << 8;
-    ostringstream oss;
-    oss << port1 << port2;
-    istringstream iss(oss.str());
-    int port;
-    iss >> port;
+    for(; i < ip_port.length(); i++) {
+        if(ip_port[i] == ',') {
+            part++;
+        } else if(part == 4) {
+            a += ip_port[i];
+        } else if(part == 5) {
+            b += ip_port[i];
+        }
+    }
     
-    //cout << ip_address << ":" << port << endl;
-    return createConnection(ip_address, port);
+    int port = atoi(a.c_str()) << 8 | atoi(b.c_str());
+    cout << "Attempting connection to " << ip_address << ":" << port << endl;
+    int newConnection = createConnection(ip_address, port);
+    usleep(5000000);
+    return newConnection;
+}
+
+string issueCommand(int socket, string message) {
+    int newConnection = pasvConnection(socket);
+    usleep(500000);
+    cout << endl;
+    
+    requestReply(socket, message);
+    usleep(500000);
+    
+    string response = reply(newConnection);
+    usleep(500000);
+    
+    close(newConnection);
+    return response;
 }
 
 int main(int argc , char *argv[])
@@ -162,23 +153,49 @@ int main(int argc , char *argv[])
         sockpi = createConnection("130.179.16.134", 21);
     
     strReply = reply(sockpi);
-    if(!checkStatus("220", strReply)) return 0;
     cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "USER anonymous\r\n");
-    if(!checkStatus("331", strReply)) return 0;
     cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "PASS asa@asas.com\r\n");
-    if(!checkStatus("230", strReply)) return 0;
     cout << strReply  << endl;
+    usleep(500000);
     
-    // PASV
+    strReply = issueCommand(sockpi, "LIST\r\n");
+    cout << strReply << endl;
+    usleep(500000);
+    
+    strReply = issueCommand(sockpi, "RETR welcome.msg\r\n");
+    cout << strReply << endl;
+    usleep(500000);
+    
+    //if(!checkStatus("227", strReply)) return -1;
+    
+    /*
+    usleep(500000);
+    int sockpi2 = createDTPConnection(strReply);
+
+    usleep(500000);
+    requestReply(sockpi, "LIST\r\n");
+    
+    usleep(500000);
+    string fileList = reply(sockpi2);
+    cout << "\n" << fileList << endl;
+    
+    close(sockpi2);
+    
     strReply = requestReply(sockpi, "PASV\r\n");
-    if(!checkStatus("227", strReply)) return 0;
+    if(!checkStatus("227", strReply)) return -1;
     cout << strReply  << endl;
     
-    int hello = createDTPConnection(strReply);
+    usleep(500000);
+    sockpi2 = createDTPConnection(strReply);
+    
+    usleep(500000);
+    strReply = requestReply(sockpi, "RETR welcome.msg\r\n");
+    cout << "\n" << strReply << endl;
+     */
     
     //TODO implement PASV, LIST, RETR.
     // Hint: implement a function that set the SP in passive mode and accept commands.
