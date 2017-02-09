@@ -1,0 +1,212 @@
+\hypertarget{main_8cpp}{}\section{main.\+cpp File Reference}
+\label{main_8cpp}\index{main.\+cpp@{main.\+cpp}}
+{\ttfamily \#include \char`\"{}header.\+h\char`\"{}}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{main_8cpp_a0ddf1224851353fc92bfbff6f499fa97}{main} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\item 
+int \hyperlink{main_8cpp_a93a38eb093eaa052b5aad54a20c65120}{create\+Connection} (string host, int port, bool hide\+Output)
+\item 
+int \hyperlink{main_8cpp_a1d34b63ec423d7fc2f51dba09e0bed99}{request} (int sock, string message)
+\item 
+string \hyperlink{main_8cpp_ae6fe30eadcbc821b82cd37d5d2427f37}{reply} (int s)
+\item 
+string \hyperlink{main_8cpp_a178a131c570aed7e97da3039549ff4c1}{request\+Reply} (int s, string message)
+\item 
+bool \hyperlink{main_8cpp_ae978daf2de6ee7fbedfadcea8c955b17}{check\+Status} (string desired\+Status, string string\+Reply)
+\item 
+int \hyperlink{main_8cpp_aab994753baebb7b6ddb960313ce5c6e5}{pasv\+Connection} (int socket)
+\item 
+string \hyperlink{main_8cpp_a6535fceffb02bb80d55088d2915ba289}{issue\+Command} (int socket, string message, string desired\+Status)
+\item 
+void \hyperlink{main_8cpp_a14a11029699a982ceb1e798082d611d6}{sleep} ()
+\item 
+void \hyperlink{main_8cpp_afcc76b3d055f3137e37a9c1ce82d0b95}{sleep} (int duration)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{main_8cpp_ae978daf2de6ee7fbedfadcea8c955b17}\label{main_8cpp_ae978daf2de6ee7fbedfadcea8c955b17}} 
+\index{main.\+cpp@{main.\+cpp}!check\+Status@{check\+Status}}
+\index{check\+Status@{check\+Status}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{check\+Status()}{checkStatus()}}
+{\footnotesize\ttfamily bool check\+Status (\begin{DoxyParamCaption}\item[{string}]{desired\+Status,  }\item[{string}]{string\+Reply }\end{DoxyParamCaption})}
+
+Compares the status returned from the server to a desired status.
+
+
+\begin{DoxyParams}{Parameters}
+{\em desired\+Status} & the status you expect to see returned from the server after issuing your command. Should be a number like \char`\"{}227\char`\"{} \\
+\hline
+{\em string\+Reply} & the full reply from the server, which may contain more than just a status \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the desired\+Status is found within the reply. Otherwise, false 
+\end{DoxyReturn}
+
+
+Definition at line 163 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a93a38eb093eaa052b5aad54a20c65120}\label{main_8cpp_a93a38eb093eaa052b5aad54a20c65120}} 
+\index{main.\+cpp@{main.\+cpp}!create\+Connection@{create\+Connection}}
+\index{create\+Connection@{create\+Connection}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{create\+Connection()}{createConnection()}}
+{\footnotesize\ttfamily int create\+Connection (\begin{DoxyParamCaption}\item[{string}]{host,  }\item[{int}]{port,  }\item[{bool}]{hide\+Output }\end{DoxyParamCaption})}
+
+Funtion creates a socket connection via ip address or dns.
+
+
+\begin{DoxyParams}{Parameters}
+{\em host} & the server to connect to (ip or dns) \\
+\hline
+{\em port} & the port on the server to connect to \\
+\hline
+{\em hide\+Output} & the option to hide output when creating the connection \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the socket of the server 
+\end{DoxyReturn}
+
+
+Definition at line 78 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a6535fceffb02bb80d55088d2915ba289}\label{main_8cpp_a6535fceffb02bb80d55088d2915ba289}} 
+\index{main.\+cpp@{main.\+cpp}!issue\+Command@{issue\+Command}}
+\index{issue\+Command@{issue\+Command}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{issue\+Command()}{issueCommand()}}
+{\footnotesize\ttfamily string issue\+Command (\begin{DoxyParamCaption}\item[{int}]{socket,  }\item[{string}]{message,  }\item[{string}]{desired\+Status }\end{DoxyParamCaption})}
+
+Sends a string message to the server and returns the reply
+
+
+\begin{DoxyParams}{Parameters}
+{\em socket} & the socket established for the server \\
+\hline
+{\em message} & the command to send to the server. Should be formatted correctly \\
+\hline
+{\em desired\+Status} & the status that should be returned from the server after issuing the intended command \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+string containing the response from the server 
+\end{DoxyReturn}
+
+
+Definition at line 225 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a0ddf1224851353fc92bfbff6f499fa97}\label{main_8cpp_a0ddf1224851353fc92bfbff6f499fa97}} 
+\index{main.\+cpp@{main.\+cpp}!main@{main}}
+\index{main@{main}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$}]{argv\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})}
+
+Program that connects to a remote server and allows for L\+I\+ST, R\+E\+TR, and Q\+U\+IT commands to be issued to the server. 
+
+Definition at line 6 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_aab994753baebb7b6ddb960313ce5c6e5}\label{main_8cpp_aab994753baebb7b6ddb960313ce5c6e5}} 
+\index{main.\+cpp@{main.\+cpp}!pasv\+Connection@{pasv\+Connection}}
+\index{pasv\+Connection@{pasv\+Connection}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{pasv\+Connection()}{pasvConnection()}}
+{\footnotesize\ttfamily int pasv\+Connection (\begin{DoxyParamCaption}\item[{int}]{socket }\end{DoxyParamCaption})}
+
+Establishes a passive connection with the server.
+
+
+\begin{DoxyParams}{Parameters}
+{\em socket} & the socket of the main server \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the socket of the D\+TP server 
+\end{DoxyReturn}
+
+
+Definition at line 178 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_ae6fe30eadcbc821b82cd37d5d2427f37}\label{main_8cpp_ae6fe30eadcbc821b82cd37d5d2427f37}} 
+\index{main.\+cpp@{main.\+cpp}!reply@{reply}}
+\index{reply@{reply}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{reply()}{reply()}}
+{\footnotesize\ttfamily string reply (\begin{DoxyParamCaption}\item[{int}]{s }\end{DoxyParamCaption})}
+
+Function gets reply from the server.
+
+
+\begin{DoxyParams}{Parameters}
+{\em s} & the socket of the connection to the server \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 125 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a1d34b63ec423d7fc2f51dba09e0bed99}\label{main_8cpp_a1d34b63ec423d7fc2f51dba09e0bed99}} 
+\index{main.\+cpp@{main.\+cpp}!request@{request}}
+\index{request@{request}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{request()}{request()}}
+{\footnotesize\ttfamily int request (\begin{DoxyParamCaption}\item[{int}]{sock,  }\item[{string}]{message }\end{DoxyParamCaption})}
+
+Send a command message to the server.
+
+
+\begin{DoxyParams}{Parameters}
+{\em sock} & the socket \\
+\hline
+{\em message} & the command to send to the server \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 115 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a178a131c570aed7e97da3039549ff4c1}\label{main_8cpp_a178a131c570aed7e97da3039549ff4c1}} 
+\index{main.\+cpp@{main.\+cpp}!request\+Reply@{request\+Reply}}
+\index{request\+Reply@{request\+Reply}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{request\+Reply()}{requestReply()}}
+{\footnotesize\ttfamily string request\+Reply (\begin{DoxyParamCaption}\item[{int}]{s,  }\item[{string}]{message }\end{DoxyParamCaption})}
+
+Request a reply from the socket.
+
+
+\begin{DoxyParams}{Parameters}
+{\em s} & the socket \\
+\hline
+{\em message} & the command to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+string containing the server reply 
+\end{DoxyReturn}
+
+
+Definition at line 147 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_a14a11029699a982ceb1e798082d611d6}\label{main_8cpp_a14a11029699a982ceb1e798082d611d6}} 
+\index{main.\+cpp@{main.\+cpp}!sleep@{sleep}}
+\index{sleep@{sleep}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{sleep()}{sleep()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily void sleep (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+Default sleep function. 
+
+Definition at line 246 of file main.\+cpp.
+
+\mbox{\Hypertarget{main_8cpp_afcc76b3d055f3137e37a9c1ce82d0b95}\label{main_8cpp_afcc76b3d055f3137e37a9c1ce82d0b95}} 
+\index{main.\+cpp@{main.\+cpp}!sleep@{sleep}}
+\index{sleep@{sleep}!main.\+cpp@{main.\+cpp}}
+\subsubsection{\texorpdfstring{sleep()}{sleep()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily void sleep (\begin{DoxyParamCaption}\item[{int}]{duration }\end{DoxyParamCaption})}
+
+Sleep for a specific amount of time. 
+\begin{DoxyParams}{Parameters}
+{\em duration} & the amount of sleep time in milliseconds \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 254 of file main.\+cpp.
+

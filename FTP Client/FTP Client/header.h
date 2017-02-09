@@ -37,7 +37,7 @@ int createConnection(string,int,bool);
 void sleep();
 void sleep(int);
 int pasvConnection(int);
-string issueCommand(int,string);
+string issueCommand(int,string,string);
 bool checkStatus(string,string);
 
 #endif /* header_h */
