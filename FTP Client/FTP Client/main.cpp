@@ -62,7 +62,7 @@ string reply(int s)
     int count;
     char buffer[BUFFER_LENGTH+1];
     
-    usleep(500000); // Change based on connection strength
+    sleep(500000); // Change based on connection strength
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
         buffer[count] = '\0';
@@ -83,6 +83,7 @@ string requestReply(int s, string message)
 bool checkStatus(string desiredStatus, string stringReply) {
     size_t status = stringReply.find(desiredStatus);
     if (status == string::npos) {
+        cout << "ERROR" << endl;
         return false;
     }
     return true;
@@ -90,14 +91,15 @@ bool checkStatus(string desiredStatus, string stringReply) {
 
 int pasvConnection(int socket) {
     string reply = requestReply(socket, "PASV\r\n");
+    sleep(500000);
+    if(!checkStatus("227", reply)) exit(0);
     
     // Obtain substring of IP and port information from reply message
-    string ip_port = reply.substr(reply.find("(") + 1,
-                                  reply.find(")") - reply.find("(") - 1);
+    string ip_port = reply.substr(reply.find("(") + 1, reply.find(")") - reply.find("(") - 1);
     
+    // Parse ip information
     string ip_address = "", a = "", b = "";
     int i = 0, part = 0;
-    
     for(; part < 4; i++) {
         if(ip_port[i] == ',') {
             part++;
@@ -120,23 +122,28 @@ int pasvConnection(int socket) {
     int port = atoi(a.c_str()) << 8 | atoi(b.c_str());
     cout << "Attempting connection to " << ip_address << ":" << port << endl;
     int newConnection = createConnection(ip_address, port);
-    usleep(5000000);
+    sleep(500000);
+    
     return newConnection;
 }
 
 string issueCommand(int socket, string message) {
     int newConnection = pasvConnection(socket);
-    usleep(500000);
     cout << endl;
     
-    requestReply(socket, message);
-    usleep(500000);
+    string response = requestReply(socket, message);
+    sleep(500000);
+    if(!checkStatus("150", response)) exit(0);
     
-    string response = reply(newConnection);
-    usleep(500000);
+    response = reply(newConnection);
+    sleep(500000);
     
     close(newConnection);
     return response;
+}
+
+void sleep(int duration) {
+    usleep(duration);
 }
 
 int main(int argc , char *argv[])
@@ -152,52 +159,29 @@ int main(int argc , char *argv[])
     else
         sockpi = createConnection("130.179.16.134", 21);
     
+    // Establish initial connection
     strReply = reply(sockpi);
+    if(!checkStatus("220", strReply)) exit(0);
     cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "USER anonymous\r\n");
+    if(!checkStatus("331", strReply)) exit(0);
     cout << strReply  << endl;
     
     strReply = requestReply(sockpi, "PASS asa@asas.com\r\n");
+    if(!checkStatus("230", strReply)) exit(0);
     cout << strReply  << endl;
-    usleep(500000);
     
+    sleep(500000);
+    
+    // Start issuing commands to DTP server
     strReply = issueCommand(sockpi, "LIST\r\n");
     cout << strReply << endl;
-    usleep(500000);
+    sleep(500000);
     
-    strReply = issueCommand(sockpi, "RETR welcome.msg\r\n");
+    strReply = issueCommand(sockpi, "RETR NOTICE\r\n");
     cout << strReply << endl;
-    usleep(500000);
+    sleep(500000);
     
-    //if(!checkStatus("227", strReply)) return -1;
-    
-    /*
-    usleep(500000);
-    int sockpi2 = createDTPConnection(strReply);
-
-    usleep(500000);
-    requestReply(sockpi, "LIST\r\n");
-    
-    usleep(500000);
-    string fileList = reply(sockpi2);
-    cout << "\n" << fileList << endl;
-    
-    close(sockpi2);
-    
-    strReply = requestReply(sockpi, "PASV\r\n");
-    if(!checkStatus("227", strReply)) return -1;
-    cout << strReply  << endl;
-    
-    usleep(500000);
-    sockpi2 = createDTPConnection(strReply);
-    
-    usleep(500000);
-    strReply = requestReply(sockpi, "RETR welcome.msg\r\n");
-    cout << "\n" << strReply << endl;
-     */
-    
-    //TODO implement PASV, LIST, RETR.
-    // Hint: implement a function that set the SP in passive mode and accept commands.
     return 0;
 }
