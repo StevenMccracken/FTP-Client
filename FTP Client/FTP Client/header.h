@@ -31,7 +31,7 @@ using namespace std;
 string reply(int);
 int request(int,string);
 string requestReply(int,string);
-int createConnection(string,int);
+int createConnection(string,int,bool);
 
 // Extra functions
 void sleep();

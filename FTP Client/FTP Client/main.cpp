@@ -10,13 +10,13 @@ int main(int argc , char *argv[])
     
     //TODO  arg[1] can be a dns or an IP address.
     if (argc > 2)
-        sockpi = createConnection(argv[1], atoi(argv[2]));
+        sockpi = createConnection(argv[1], atoi(argv[2]), false);
     if (argc == 2)
-        sockpi = createConnection(argv[1], 21);
+        sockpi = createConnection(argv[1], 21, false);
     else
-        sockpi = createConnection("130.179.16.134", 21);
+        sockpi = createConnection("130.179.16.134", 21, false);
     
-    // Establish initial connection
+    // Establish server connection
     strReply = reply(sockpi);
     if(!checkStatus("220", strReply)) exit(0);
     cout << strReply  << endl;
@@ -30,20 +30,43 @@ int main(int argc , char *argv[])
     cout << strReply  << endl;
     
     sleep();
+    bool run = true;
+    int choice = -1;
+    string filename = "";
     
-    // Start issuing commands to DTP server
-    strReply = issueCommand(sockpi, "LIST\r\n");
-    cout << strReply << endl;
-    sleep();
-    
-    strReply = issueCommand(sockpi, "RETR NOTICE\r\n");
-    cout << strReply << endl;
-    sleep();
-    
+    cout << "The FTP Client is now connected and running. What would you like to do?\n";
+    while(run) {
+        cout << "--------------\n1) List files\n2) Read a file\n3) Quit\n";
+        cin >> choice;
+        switch(choice) {
+            case 1:
+                strReply = issueCommand(sockpi, "LIST\r\n");
+                cout << "--------------\n" << strReply;
+                sleep();
+                break;
+            case 2:
+                cout << "Enter the name of the file you want to read: ";
+                cin >> filename;
+                
+                strReply = issueCommand(sockpi, "RETR " + filename + "\r\n");
+                cout << strReply;
+                sleep();
+                break;
+            case 3:
+                run = false;
+                strReply = requestReply(sockpi, "QUIT\r\n");
+                if(!checkStatus("221", strReply)) exit(0);
+                sleep();
+                break;
+            default:
+                cout << "Invalid menu choice" << endl;
+                break;
+        }
+    }
     return 0;
 }
 
-int createConnection(string host, int port)
+int createConnection(string host, int port, bool hideOutput)
 {
     int s;
     struct sockaddr_in sockaddr;
@@ -56,11 +79,11 @@ int createConnection(string host, int port)
     int a1,a2,a3,a4;
     if (sscanf(host.c_str(), "%d.%d.%d.%d", &a1, &a2, &a3, &a4 ) == 4)
     {
-        cout << "by ip";
+        if(!hideOutput) cout << "by ip";
         sockaddr.sin_addr.s_addr =  inet_addr(host.c_str());
     }
     else {
-        cout << "by name";
+        if(!hideOutput) cout << "by name";
         hostent *record = gethostbyname(host.c_str());
         in_addr *addressptr = (in_addr *)record->h_addr;
         sockaddr.sin_addr = *addressptr;
@@ -143,8 +166,7 @@ int pasvConnection(int socket) {
     }
     
     int port = atoi(a.c_str()) << 8 | atoi(b.c_str());
-    cout << "Attempting connection to " << ip_address << ":" << port << endl;
-    int newConnection = createConnection(ip_address, port);
+    int newConnection = createConnection(ip_address, port,true);
     sleep();
     
     return newConnection;
@@ -152,7 +174,6 @@ int pasvConnection(int socket) {
 
 string issueCommand(int socket, string message) {
     int newConnection = pasvConnection(socket);
-    cout << endl;
     
     string response = requestReply(socket, message);
     sleep();
