@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		69C39E2C1E4C367800759CD8 /* FTP Client */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP Client"; sourceTree = BUILT_PRODUCTS_DIR; };
 		69C39E2F1E4C367800759CD8 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		69C39E361E4C37CA00759CD8 /* header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = header.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				69C39E2F1E4C367800759CD8 /* main.cpp */,
+				69C39E361E4C37CA00759CD8 /* header.h */,
 			);
 			path = "FTP Client";
 			sourceTree = "<group>";

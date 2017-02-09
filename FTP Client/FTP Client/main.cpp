@@ -1,24 +1,47 @@
 /**
     C++ client example using sockets.
 */
-#include <iostream>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <iterator>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <netdb.h>
+#include "header.h"
 
-#define BUFFER_LENGTH 2048
-
-using namespace std;
+int main(int argc , char *argv[])
+{
+    int sockpi;
+    string strReply;
+    
+    //TODO  arg[1] can be a dns or an IP address.
+    if (argc > 2)
+        sockpi = createConnection(argv[1], atoi(argv[2]));
+    if (argc == 2)
+        sockpi = createConnection(argv[1], 21);
+    else
+        sockpi = createConnection("130.179.16.134", 21);
+    
+    // Establish initial connection
+    strReply = reply(sockpi);
+    if(!checkStatus("220", strReply)) exit(0);
+    cout << strReply  << endl;
+    
+    strReply = requestReply(sockpi, "USER anonymous\r\n");
+    if(!checkStatus("331", strReply)) exit(0);
+    cout << strReply  << endl;
+    
+    strReply = requestReply(sockpi, "PASS asa@asas.com\r\n");
+    if(!checkStatus("230", strReply)) exit(0);
+    cout << strReply  << endl;
+    
+    sleep();
+    
+    // Start issuing commands to DTP server
+    strReply = issueCommand(sockpi, "LIST\r\n");
+    cout << strReply << endl;
+    sleep();
+    
+    strReply = issueCommand(sockpi, "RETR NOTICE\r\n");
+    cout << strReply << endl;
+    sleep();
+    
+    return 0;
+}
 
 int createConnection(string host, int port)
 {
@@ -62,7 +85,7 @@ string reply(int s)
     int count;
     char buffer[BUFFER_LENGTH+1];
     
-    sleep(500000); // Change based on connection strength
+    sleep(); // Change based on connection strength
     do {
         count = recv(s, buffer, BUFFER_LENGTH, 0);
         buffer[count] = '\0';
@@ -91,7 +114,7 @@ bool checkStatus(string desiredStatus, string stringReply) {
 
 int pasvConnection(int socket) {
     string reply = requestReply(socket, "PASV\r\n");
-    sleep(500000);
+    sleep();
     if(!checkStatus("227", reply)) exit(0);
     
     // Obtain substring of IP and port information from reply message
@@ -122,7 +145,7 @@ int pasvConnection(int socket) {
     int port = atoi(a.c_str()) << 8 | atoi(b.c_str());
     cout << "Attempting connection to " << ip_address << ":" << port << endl;
     int newConnection = createConnection(ip_address, port);
-    sleep(500000);
+    sleep();
     
     return newConnection;
 }
@@ -132,56 +155,20 @@ string issueCommand(int socket, string message) {
     cout << endl;
     
     string response = requestReply(socket, message);
-    sleep(500000);
+    sleep();
     if(!checkStatus("150", response)) exit(0);
     
     response = reply(newConnection);
-    sleep(500000);
+    sleep();
     
     close(newConnection);
     return response;
 }
 
-void sleep(int duration) {
-    usleep(duration);
+void sleep() {
+    usleep(500000);
 }
 
-int main(int argc , char *argv[])
-{
-    int sockpi;
-    string strReply;
-    
-    //TODO  arg[1] can be a dns or an IP address.
-    if (argc > 2)
-        sockpi = createConnection(argv[1], atoi(argv[2]));
-    if (argc == 2)
-        sockpi = createConnection(argv[1], 21);
-    else
-        sockpi = createConnection("130.179.16.134", 21);
-    
-    // Establish initial connection
-    strReply = reply(sockpi);
-    if(!checkStatus("220", strReply)) exit(0);
-    cout << strReply  << endl;
-    
-    strReply = requestReply(sockpi, "USER anonymous\r\n");
-    if(!checkStatus("331", strReply)) exit(0);
-    cout << strReply  << endl;
-    
-    strReply = requestReply(sockpi, "PASS asa@asas.com\r\n");
-    if(!checkStatus("230", strReply)) exit(0);
-    cout << strReply  << endl;
-    
-    sleep(500000);
-    
-    // Start issuing commands to DTP server
-    strReply = issueCommand(sockpi, "LIST\r\n");
-    cout << strReply << endl;
-    sleep(500000);
-    
-    strReply = issueCommand(sockpi, "RETR NOTICE\r\n");
-    cout << strReply << endl;
-    sleep(500000);
-    
-    return 0;
+void sleep(int duration) {
+    usleep(duration);
 }
